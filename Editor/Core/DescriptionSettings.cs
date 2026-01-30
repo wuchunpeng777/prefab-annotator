@@ -11,11 +11,11 @@ namespace PrefabAnnotator.Core
         private const string ENABLED_KEY = "PrefabAnnotator_Enabled";
 
         /// <summary>
-        /// 注释功能是否启用（默认关闭）
+        /// 注释功能是否启用（默认开启）
         /// </summary>
         public static bool IsEnabled
         {
-            get => EditorPrefs.GetBool(ENABLED_KEY, false);
+            get => EditorPrefs.GetBool(ENABLED_KEY, true);
             set
             {
                 if (IsEnabled != value)
