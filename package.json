@@ -2,7 +2,7 @@
   "name": "com.firebox.prefab-annotator",
   "version": "1.0.0",
   "displayName": "Prefab Annotator",
-  "description": "为 Unity Prefab 中的 GameObject 添加注释/描述功能，支持嵌套 Prefab、导出树形结构等功能。",
+  "description": "A Unity Editor extension for adding descriptions/annotations to GameObjects in Prefabs.",
   "unity": "2019.4",
   "unityRelease": "0f1",
   "keywords": [
