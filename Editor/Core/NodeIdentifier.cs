@@ -1,10 +1,6 @@
 using UnityEngine;
 using UnityEditor;
-#if UNITY_2021_2_OR_NEWER
-using UnityEditor.SceneManagement;
-#else
 using UnityEditor.Experimental.SceneManagement;
-#endif
 
 namespace PrefabAnnotator.Core
 {
@@ -19,7 +15,8 @@ namespace PrefabAnnotator.Core
 
         /// <summary>
         /// 获取GameObject的全局唯一标识符字符串
-        /// 在Prefab编辑模式中，会自动将全零的assetGUID替换为实际的Prefab GUID
+        /// 在Prefab编辑模式中，会自动将assetGUID替换为实际的Prefab GUID
+        /// 确保保存和读取时使用一致的GUID
         /// </summary>
         /// <param name="gameObject">目标GameObject</param>
         /// <returns>GlobalObjectId的字符串表示</returns>
@@ -33,13 +30,21 @@ namespace PrefabAnnotator.Core
             GlobalObjectId globalId = GlobalObjectId.GetGlobalObjectIdSlow(gameObject);
             string idString = globalId.ToString();
 
-            // 在Prefab编辑模式中，GlobalObjectId的assetGUID可能为全零
+            // 在Prefab编辑模式中，GlobalObjectId的assetGUID可能不正确
+            // （可能是全零，也可能是其他GUID如Prefab Variant的基础Prefab GUID）
             // 需要替换为实际的Prefab资产GUID以确保一致性
-            // 使用缓存的 PrefabGuid 避免重复查询
             string cachedGuid = DescriptionFileManager.GetCachedPrefabGuid();
-            if (!string.IsNullOrEmpty(cachedGuid) && idString.Contains(ZERO_GUID))
+            if (!string.IsNullOrEmpty(cachedGuid))
             {
-                idString = idString.Replace(ZERO_GUID, cachedGuid);
+                // 解析 GlobalObjectId 并强制使用当前 Prefab 的 GUID
+                // 格式: GlobalObjectId_V1-{identifierType}-{assetGUID}-{targetObjectId}-{targetPrefabId}
+                string[] parts = idString.Split('-');
+                if (parts.Length >= 5)
+                {
+                    // 强制使用当前 Prefab Stage 的 GUID
+                    parts[2] = cachedGuid;
+                    idString = string.Join("-", parts);
+                }
             }
 
             return idString;

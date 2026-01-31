@@ -42,6 +42,14 @@ namespace PrefabAnnotator.Core
         private static readonly Dictionary<int, (bool hasDesc, string desc)> _nodeDescriptionCache = new Dictionary<int, (bool, string)>();
         private static string _nodeDescriptionCachePrefabPath;
         
+        // 节点忽略状态缓存（用于 Hierarchy 绘制优化）
+        // Key: instanceID, Value: isIgnored
+        private static readonly Dictionary<int, bool> _nodeIgnoredCache = new Dictionary<int, bool>();
+        // 节点是否在忽略子树中的缓存
+        // Key: instanceID, Value: isInIgnoredSubtree
+        private static readonly Dictionary<int, bool> _nodeInIgnoredSubtreeCache = new Dictionary<int, bool>();
+        private static string _nodeIgnoredCachePrefabPath;
+        
         // 兼容旧代码的缓存
         private static DescriptionFileData _cachedData;
         private static string _cachedFilePath;
@@ -590,6 +598,40 @@ namespace PrefabAnnotator.Core
                 return false;
             }
 
+            // 检查缓存
+            int instanceId = gameObject.GetInstanceID();
+            UpdatePrefabStageCache();
+            
+            // 验证缓存是否有效（同一个 prefab）
+            if (_nodeIgnoredCachePrefabPath == _cachedPrefabPath && 
+                _nodeIgnoredCache.TryGetValue(instanceId, out bool cachedResult))
+            {
+                return cachedResult;
+            }
+            
+            // 缓存未命中，执行完整查询
+            bool result = IsIgnoredWithNestedSupportInternal(gameObject);
+            
+            // 存入缓存
+            if (_cachedPrefabPath != null)
+            {
+                if (_nodeIgnoredCachePrefabPath != _cachedPrefabPath)
+                {
+                    _nodeIgnoredCache.Clear();
+                    _nodeInIgnoredSubtreeCache.Clear();
+                    _nodeIgnoredCachePrefabPath = _cachedPrefabPath;
+                }
+                _nodeIgnoredCache[instanceId] = result;
+            }
+            
+            return result;
+        }
+        
+        /// <summary>
+        /// 内部方法：检查是否被忽略（支持嵌套Prefab）
+        /// </summary>
+        private static bool IsIgnoredWithNestedSupportInternal(GameObject gameObject)
+        {
             // 检查当前Prefab是否对此节点有覆盖设置（通过完整 GlobalId 匹配）
             bool? overrideIgnored = TryGetIgnoredOverride(gameObject);
             if (overrideIgnored.HasValue)
@@ -758,17 +800,43 @@ namespace PrefabAnnotator.Core
                 return false;
             }
 
+            // 检查缓存
+            int instanceId = gameObject.GetInstanceID();
+            UpdatePrefabStageCache();
+            
+            // 验证缓存是否有效（同一个 prefab）
+            if (_nodeIgnoredCachePrefabPath == _cachedPrefabPath && 
+                _nodeInIgnoredSubtreeCache.TryGetValue(instanceId, out bool cachedResult))
+            {
+                return cachedResult;
+            }
+            
+            // 缓存未命中，执行完整查询
+            bool result = false;
             Transform current = gameObject.transform;
             while (current != null)
             {
                 if (IsIgnoredWithNestedSupport(current.gameObject))
                 {
-                    return true;
+                    result = true;
+                    break;
                 }
                 current = current.parent;
             }
+            
+            // 存入缓存
+            if (_cachedPrefabPath != null)
+            {
+                if (_nodeIgnoredCachePrefabPath != _cachedPrefabPath)
+                {
+                    _nodeIgnoredCache.Clear();
+                    _nodeInIgnoredSubtreeCache.Clear();
+                    _nodeIgnoredCachePrefabPath = _cachedPrefabPath;
+                }
+                _nodeInIgnoredSubtreeCache[instanceId] = result;
+            }
 
-            return false;
+            return result;
         }
 
         /// <summary>
@@ -1168,6 +1236,9 @@ namespace PrefabAnnotator.Core
             _dependencyCache.Clear();
             _nodeDescriptionCache.Clear();
             _nodeDescriptionCachePrefabPath = null;
+            _nodeIgnoredCache.Clear();
+            _nodeInIgnoredSubtreeCache.Clear();
+            _nodeIgnoredCachePrefabPath = null;
             _cachedData = null;
             _cachedFilePath = null;
             _cachedPrefabStage = null;
@@ -1184,6 +1255,9 @@ namespace PrefabAnnotator.Core
         {
             _nodeDescriptionCache.Clear();
             _nodeDescriptionCachePrefabPath = null;
+            _nodeIgnoredCache.Clear();
+            _nodeInIgnoredSubtreeCache.Clear();
+            _nodeIgnoredCachePrefabPath = null;
         }
         
         /// <summary>
@@ -1193,7 +1267,10 @@ namespace PrefabAnnotator.Core
         {
             if (gameObject != null)
             {
-                _nodeDescriptionCache.Remove(gameObject.GetInstanceID());
+                int instanceId = gameObject.GetInstanceID();
+                _nodeDescriptionCache.Remove(instanceId);
+                _nodeIgnoredCache.Remove(instanceId);
+                _nodeInIgnoredSubtreeCache.Remove(instanceId);
             }
         }
 

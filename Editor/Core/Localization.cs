@@ -19,11 +19,11 @@ namespace PrefabAnnotator.Core
         private const string LANGUAGE_KEY = "PrefabAnnotator_Language";
 
         /// <summary>
-        /// 当前语言（默认英文）
+        /// 当前语言（默认中文）
         /// </summary>
         public static Language CurrentLanguage
         {
-            get => (Language)EditorPrefs.GetInt(LANGUAGE_KEY, (int)Language.English);
+            get => (Language)EditorPrefs.GetInt(LANGUAGE_KEY, (int)Language.Chinese);
             set
             {
                 if (CurrentLanguage != value)
@@ -46,6 +46,11 @@ namespace PrefabAnnotator.Core
         #region 本地化文本
 
         // ============== Inspector面板相关 ==============
+
+        /// <summary>
+        /// 导出Prefab描述按钮
+        /// </summary>
+        public static string Inspector_ExportDescriptions => IsChinese ? "导出Prefab描述" : "Export Prefab Descriptions";
 
         /// <summary>
         /// 展开所有注释节点按钮

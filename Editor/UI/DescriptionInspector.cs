@@ -8,6 +8,7 @@ using UnityEditor.SceneManagement;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 using PrefabAnnotator.Core;
+using PrefabAnnotator.Export;
 
 namespace PrefabAnnotator.UI
 {
@@ -72,6 +73,14 @@ namespace PrefabAnnotator.UI
             InitStyles();
 
             EditorGUILayout.Space(5);
+
+            // 导出按钮
+            if (GUILayout.Button(Localization.Inspector_ExportDescriptions, _buttonStyle))
+            {
+                ExportCurrentPrefab();
+            }
+
+            EditorGUILayout.Space(3);
 
             // 展开按钮
             if (GUILayout.Button(Localization.Inspector_ExpandAnnotatedNodes, _buttonStyle))
@@ -276,6 +285,38 @@ namespace PrefabAnnotator.UI
                 _isEditing = false;
             }
         }
+
+        #region 导出功能
+
+        /// <summary>
+        /// 导出当前编辑的Prefab的描述到剪贴板
+        /// </summary>
+        private static void ExportCurrentPrefab()
+        {
+            var prefabStage = DescriptionFileManager.GetCachedPrefabStage();
+            if (prefabStage == null)
+            {
+                return;
+            }
+
+            GameObject root = prefabStage.prefabContentsRoot;
+            if (root == null)
+            {
+                return;
+            }
+
+            string result = DescriptionExporter.ExportGameObjectToString(root);
+            if (string.IsNullOrEmpty(result))
+            {
+                EditorUtility.DisplayDialog(Localization.Export_DialogTitle, Localization.Export_CannotExportPrefab, Localization.Export_OK);
+                return;
+            }
+
+            GUIUtility.systemCopyBuffer = result;
+            Debug.Log($"[PrefabAnnotator] {Localization.Export_CopiedToClipboard}:\n{result}");
+        }
+
+        #endregion
 
         #region 展开有注释的节点
 
