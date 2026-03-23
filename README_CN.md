@@ -6,6 +6,7 @@
 **[English](README.md)**
 
 为 Unity Prefab 中的 GameObject 添加注释/描述功能的编辑器扩展。
+可以让AI更好的理解prefab结构以提高生成业务代码的精准度。
 
 ## 功能特性
 
