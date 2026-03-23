@@ -6,6 +6,7 @@
 **[中文文档](README_CN.md)**
 
 A Unity Editor extension for adding descriptions/annotations to GameObjects in Prefabs.
+This allows AI to better understand the prefab structure, thereby improving the accuracy of generated business code.
 
 ## Features
 
