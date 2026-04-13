@@ -3,39 +3,58 @@
 [![Unity](https://img.shields.io/badge/Unity-2019.4%2B-blue)](https://unity.com/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE.md)
 
-**[中文文档](README_CN.md)**
+**[English](README_EN.md)**
 
-A Unity Editor extension for adding descriptions/annotations to GameObjects in Prefabs.
-This allows AI to better understand the prefab structure, thereby improving the accuracy of generated business code.
+为 Unity Prefab 中的 GameObject 添加注释/描述功能的编辑器扩展。
+可以让AI更好的理解prefab结构以提高生成业务代码的精准度。
 
-## Features
+## 功能特性
 
-- Add description annotations to any GameObject in Prefab editing mode
-- Support nested Prefab annotation inheritance and override
-- Display annotation icons and tooltips in Hierarchy window
-- Support ignoring nodes and their children
-- Export Prefab structure as tree-formatted text (copy to clipboard)
-- Chinese/English language switching
+- 在 Prefab 编辑模式下为任意 GameObject 添加描述注释
+- 支持嵌套 Prefab 的注释继承和覆盖
+- Hierarchy 窗口显示注释图标和 Tooltip
+- 支持忽略节点及其子节点
+- 导出 Prefab 结构为树形文本（复制到剪贴板）
 
-## Installation
+## 导出示例
 
-### Method 1: Install via Git URL (Recommended)
+~~~
+main (Canvas)
+├─ background (Image) - 描述：背景图，根据季节动态切换
+├─ title - 描述：标题根节点，当活动开启时显示这个节点
+│  └─ desc (TextMeshProUGUI) - 描述：标题文字，格式为：xxx活动
+├─ content
+│  └─ Scroll View (Image, ScrollRect)
+│     ├─ Viewport (Image, Mask)
+│     │  └─ Content
+│     └─ Scrollbar Vertical (Image, Scrollbar)
+│        └─ Sliding Area
+│           └─ Handle (Image)
+└─ btnClose (Button, Image) - 描述：关闭按钮，点击关闭界面
+   └─ desc (TextMeshProUGUI)
+~~~
 
-1. Open Unity Editor
-2. Open `Window > Package Manager`
-3. Click the `+` button in the top-left corner
-4. Select `Add package from git URL...`
-5. Enter the following URL:
+
+
+## 安装方法
+
+### 方法 1：通过 Git URL 安装（推荐）
+
+1. 打开 Unity 编辑器
+2. 打开 `Window > Package Manager`
+3. 点击左上角 `+` 按钮
+4. 选择 `Add package from git URL...`
+5. 输入以下 URL：
 
 ```
 https://github.com/wuchunpeng777/prefab-annotator.git
 ```
 
-6. Click `Add` button
+6. 点击 `Add` 按钮
 
-### Method 2: Add to manifest.json
+### 方法 2：手动添加到 manifest.json
 
-Open your project's `Packages/manifest.json` file and add to `dependencies`:
+打开项目的 `Packages/manifest.json` 文件，在 `dependencies` 中添加：
 
 ```json
 {
@@ -46,58 +65,58 @@ Open your project's `Packages/manifest.json` file and add to `dependencies`:
 }
 ```
 
-To specify a version, use a tag:
+如需指定版本，可以使用 tag：
 
 ```json
 "com.firebox.prefab-annotator": "https://github.com/wuchunpeng777/prefab-annotator.git#v1.0.0"
 ```
 
-### Method 3: Local Installation
+### 方法 3：本地安装
 
-1. Download or clone this repository
-2. In Package Manager, select `Add package from disk...`
-3. Select the `package.json` file
+1. 下载或克隆此仓库
+2. 在 Package Manager 中选择 `Add package from disk...`
+3. 选择 `package.json` 文件
 
-## Requirements
+## 系统要求
 
-- Unity 2019.4 LTS or higher
-- **Dependency**: Newtonsoft.Json (manual-installed)
-> 1. Open `Window > Package Manager`
-> 2. Click `+` > `Add package by name`
-> 3. Enter: `com.unity.nuget.newtonsoft-json`
+- Unity 2019.4 LTS 或更高版本
+- **依赖**: Newtonsoft.Json（手动安装）
+> 1. 打开 `Window > Package Manager`
+> 2. 点击 `+` > `Add package by name`
+> 3. 输入：`com.unity.nuget.newtonsoft-json`
 
-## Usage
+## 使用方法
 
-### Enable/Disable
+### 开启/关闭功能
 
-Menu: `Tools > Prefab Annotator > Enable/Disable`
+菜单：`Tools > Prefab Annotator > Enable/Disable`
 
-### Add Description
+### 添加描述
 
-1. Double-click a Prefab to enter editing mode
-2. Select any GameObject
-3. Enter content in the description area at the bottom of Inspector
-4. Click Save or press `Ctrl+Enter`
+1. 双击 Prefab 进入编辑模式
+2. 选中任意 GameObject
+3. 在 Inspector 底部的描述区域输入内容
+4. 点击保存或按 `Ctrl+Enter`
 
-### Ignore Nodes
+### 忽略节点
 
-Check "Ignore this node and children" to skip the node during export.
+勾选 "忽略此节点及子节点" 可以在导出时跳过该节点。
 
-### Export Structure
+### 导出结构
 
-- **In Prefab editing mode**: Right-click GameObject > `Export Prefab Descriptions`
-- **In Project window**: Right-click Prefab asset > `Export Prefab Descriptions`
+- **Prefab 编辑模式中**: 选中顶部节点，点击Inspector中的导出Prefab描述
+- 将导出的树形prefab结构交给AI，AI即可根据节点的自然语言描述分析节点作用，生成高度符合业务需求的代码
 
-### Switch Language
+### 切换工具菜单语言
 
-Menu: `Tools > Prefab Annotator > Language > Chinese/English`
+菜单：`Tools > Prefab Annotator > Language > Chinese/English`
 
-## Data Storage
+## 数据存储
 
-Description data is stored in `Assets/Editor/Descriptions/` directory, named by Prefab GUID:
-- Format: `{GUID}.desc.json`
-- Moving or renaming Prefab will not lose description data
+描述数据存储在 `Assets/Editor/Descriptions/` 目录下，以 Prefab 的 GUID 命名：
+- 格式：`{GUID}.desc.json`
+- 移动或重命名 Prefab 不会丢失描述数据
 
-## License
+## 许可证
 
 MIT License
