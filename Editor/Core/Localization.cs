@@ -98,6 +98,13 @@ namespace PrefabAnnotator.Core
             ? "此节点在嵌套的Prefab中被标记为忽略，将不会被导出" 
             : "This node is marked as ignored in the nested Prefab, will not be exported";
 
+        /// <summary>
+        /// 复制节点后 GlobalObjectId 碰撞提示
+        /// </summary>
+        public static string Inspector_DuplicateIdHint => IsChinese 
+            ? "检测到复制节点的 ID 与原节点相同，请先保存 Prefab（Ctrl+S）再编辑注释" 
+            : "Duplicated node shares the same ID as the original. Please save the Prefab (Ctrl+S) before editing annotations";
+
         // ============== 导出功能相关 ==============
 
         /// <summary>

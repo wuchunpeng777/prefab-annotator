@@ -13,9 +13,11 @@ namespace PrefabAnnotator.UI
     {
         private static Texture2D _descriptionIcon;
         private static Texture2D _ignoredIcon;
+        private static Texture2D _warningIcon;
         private static GUIStyle _tooltipStyle;
         private static readonly Color IconColor = new Color(0.4f, 0.7f, 1f, 0.9f);
         private static readonly Color IgnoredIconColor = new Color(0.7f, 0.7f, 0.7f, 0.7f);
+        private static readonly Color WarningIconColor = new Color(1f, 0.85f, 0.2f, 0.95f);
 
         static HierarchyIconDrawer()
         {
@@ -51,6 +53,13 @@ namespace PrefabAnnotator.UI
                 iconSize,
                 iconSize
             );
+
+            // 碰撞状态的节点显示黄色警告图标
+            if (DescriptionFileManager.HasDuplicateGlobalId(gameObject))
+            {
+                DrawWarningIcon(iconRect, Localization.Inspector_DuplicateIdHint);
+                return;
+            }
 
             // 检查是否被忽略（支持嵌套Prefab，当前节点直接被标记）
             if (DescriptionFileManager.IsIgnoredWithNestedSupport(gameObject))
@@ -97,6 +106,19 @@ namespace PrefabAnnotator.UI
                 // 使用自定义tooltip样式显示描述
                 ShowTooltip(rect, tooltip);
             }
+        }
+
+        private static void DrawWarningIcon(Rect rect, string tooltip)
+        {
+            if (_warningIcon == null)
+            {
+                _warningIcon = CreateWarningIcon();
+            }
+
+            GUI.color = WarningIconColor;
+            GUIContent content = new GUIContent(_warningIcon, tooltip);
+            GUI.Label(rect, content);
+            GUI.color = Color.white;
         }
 
         private static void DrawIgnoredIcon(Rect rect, string tooltip)
@@ -281,6 +303,56 @@ namespace PrefabAnnotator.UI
             texture.SetPixels(pixels);
             texture.Apply();
 
+            return texture;
+        }
+
+        /// <summary>
+        /// 创建警告图标（三角形 + 感叹号）
+        /// </summary>
+        private static Texture2D CreateWarningIcon()
+        {
+            int size = 16;
+            Texture2D texture = new Texture2D(size, size, TextureFormat.ARGB32, false);
+            texture.filterMode = FilterMode.Bilinear;
+
+            Color[] pixels = new Color[size * size];
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = Color.clear;
+
+            Color iconColor = Color.white;
+
+            // 三角形轮廓（顶点在上，底边在下）
+            // 顶点: (8, 2), 左下: (2, 13), 右下: (13, 13)
+            for (int y = 2; y <= 13; y++)
+            {
+                float progress = (float)(y - 2) / 11f;
+                int left = (int)(8 - progress * 6);
+                int right = (int)(8 + progress * 6);
+                
+                // 左边和右边
+                SetPixelSafe(pixels, size, left, y, iconColor);
+                SetPixelSafe(pixels, size, left + 1, y, iconColor);
+                SetPixelSafe(pixels, size, right, y, iconColor);
+                SetPixelSafe(pixels, size, right - 1, y, iconColor);
+            }
+            // 底边
+            for (int x = 2; x <= 13; x++)
+            {
+                SetPixelSafe(pixels, size, x, 13, iconColor);
+            }
+
+            // 感叹号竖线
+            for (int y = 5; y <= 9; y++)
+            {
+                SetPixelSafe(pixels, size, 8, y, iconColor);
+                SetPixelSafe(pixels, size, 7, y, iconColor);
+            }
+            // 感叹号点
+            SetPixelSafe(pixels, size, 7, 11, iconColor);
+            SetPixelSafe(pixels, size, 8, 11, iconColor);
+
+            texture.SetPixels(pixels);
+            texture.Apply();
             return texture;
         }
 

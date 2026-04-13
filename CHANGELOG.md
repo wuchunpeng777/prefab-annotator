@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-04-13
+
+### Fixed
+
+- 修复 Prefab 编辑模式下复制已注释节点后，新节点显示原节点注释且编辑会覆盖原节点数据的问题
+- 新增 GlobalObjectId 碰撞检测，复制节点未保存时在 Inspector 显示警告并禁止编辑注释
+- 新增 Hierarchy 窗口黄色警告图标，提示用户保存 Prefab 后再编辑
+
 ## [1.0.3] - 2026-04-13
 
 ### Modify

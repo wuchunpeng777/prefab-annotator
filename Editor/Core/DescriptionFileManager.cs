@@ -42,6 +42,9 @@ namespace PrefabAnnotator.Core
         private static readonly Dictionary<int, (bool hasDesc, string desc)> _nodeDescriptionCache = new Dictionary<int, (bool, string)>();
         private static string _nodeDescriptionCachePrefabPath;
         
+        // GlobalObjectId 碰撞检测（复制节点在未保存时 ID 相同）
+        private static readonly HashSet<int> _duplicateIdInstances = new HashSet<int>();
+        
         // 节点忽略状态缓存（用于 Hierarchy 绘制优化）
         // Key: instanceID, Value: isIgnored
         private static readonly Dictionary<int, bool> _nodeIgnoredCache = new Dictionary<int, bool>();
@@ -59,14 +62,93 @@ namespace PrefabAnnotator.Core
             // 监听 PrefabStage 变化
             PrefabStage.prefabStageOpened += OnPrefabStageChanged;
             PrefabStage.prefabStageClosing += OnPrefabStageChanged;
+#if UNITY_2020_1_OR_NEWER
+            PrefabStage.prefabSaved += OnPrefabSaved;
+#endif
             
             // 监听编辑器更新以检测帧变化
             EditorApplication.update += OnEditorUpdate;
+            
+            // 监听 Hierarchy 变化以检测节点复制/删除
+            EditorApplication.hierarchyChanged += OnHierarchyChanged;
         }
         
         private static void OnPrefabStageChanged(PrefabStage stage)
         {
             ClearAllCaches();
+        }
+        
+        private static void OnPrefabSaved(GameObject savedPrefab)
+        {
+            _duplicateIdInstances.Clear();
+            ClearNodeDescriptionCache();
+        }
+        
+        private static void OnHierarchyChanged()
+        {
+            if (!DescriptionSettings.IsEnabled) return;
+            
+            var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (prefabStage == null) return;
+            
+            ClearNodeDescriptionCache();
+            DetectDuplicateGlobalIds(prefabStage);
+        }
+        
+        private static void DetectDuplicateGlobalIds(PrefabStage prefabStage)
+        {
+            _duplicateIdInstances.Clear();
+            var root = prefabStage.prefabContentsRoot;
+            if (root == null) return;
+            
+            var allTransforms = root.GetComponentsInChildren<Transform>(true);
+            var objects = new Object[allTransforms.Length];
+            for (int i = 0; i < allTransforms.Length; i++)
+                objects[i] = allTransforms[i].gameObject;
+            
+            var globalIds = new GlobalObjectId[objects.Length];
+            GlobalObjectId.GetGlobalObjectIdsSlow(objects, globalIds);
+            
+            string cachedGuid = GetCachedPrefabGuid();
+            
+            // globalId string → index of first occurrence
+            var seen = new Dictionary<string, int>();
+            
+            for (int i = 0; i < globalIds.Length; i++)
+            {
+                string idString = globalIds[i].ToString();
+                
+                if (!string.IsNullOrEmpty(cachedGuid))
+                {
+                    string[] parts = idString.Split('-');
+                    if (parts.Length >= 5)
+                    {
+                        parts[2] = cachedGuid;
+                        idString = string.Join("-", parts);
+                    }
+                }
+                
+                int instanceId = objects[i].GetInstanceID();
+                
+                if (seen.TryGetValue(idString, out int firstIndex))
+                {
+                    _duplicateIdInstances.Add(objects[firstIndex].GetInstanceID());
+                    _duplicateIdInstances.Add(instanceId);
+                }
+                else
+                {
+                    seen[idString] = i;
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 检查节点是否处于 GlobalObjectId 碰撞状态（复制后未保存）
+        /// </summary>
+        public static bool HasDuplicateGlobalId(GameObject gameObject)
+        {
+            if (gameObject == null) return false;
+            return _duplicateIdInstances.Contains(gameObject.GetInstanceID());
         }
         
         private static void OnEditorUpdate()
@@ -1239,6 +1321,7 @@ namespace PrefabAnnotator.Core
             _nodeIgnoredCache.Clear();
             _nodeInIgnoredSubtreeCache.Clear();
             _nodeIgnoredCachePrefabPath = null;
+            _duplicateIdInstances.Clear();
             _cachedData = null;
             _cachedFilePath = null;
             _cachedPrefabStage = null;

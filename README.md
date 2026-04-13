@@ -1,7 +1,7 @@
 # Prefab Annotator
 
 [![Unity](https://img.shields.io/badge/Unity-2019.4%2B-blue)](https://unity.com/)
-[![Version](https://img.shields.io/badge/Version-1.0.3-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.0.4-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE.md)
 
 **[English](README_EN.md)**
@@ -91,7 +91,7 @@ https://github.com/wuchunpeng777/prefab-annotator.git
 如需指定版本，可以使用 tag：
 
 ```json
-"com.firebox.prefab-annotator": "https://github.com/wuchunpeng777/prefab-annotator.git#v1.0.3"
+"com.firebox.prefab-annotator": "https://github.com/wuchunpeng777/prefab-annotator.git#v1.0.4"
 ```
 
 ### 方法 3：本地安装

@@ -29,8 +29,13 @@ namespace PrefabAnnotator.UI
 
         static DescriptionInspector()
         {
-            // 注册Inspector GUI回调
             Editor.finishedDefaultHeaderGUI += OnPostHeaderGUI;
+            EditorApplication.hierarchyChanged += OnHierarchyChangedResetInspector;
+        }
+        
+        private static void OnHierarchyChangedResetInspector()
+        {
+            _currentGameObject = null;
         }
 
         private static void OnPostHeaderGUI(Editor editor)
@@ -137,6 +142,10 @@ namespace PrefabAnnotator.UI
                     EditorGUILayout.HelpBox(Localization.Inspector_IgnoredHint, MessageType.Info);
                 }
                 // 正常显示描述编辑区域
+                else if (DescriptionFileManager.HasDuplicateGlobalId(gameObject))
+                {
+                    EditorGUILayout.HelpBox(Localization.Inspector_DuplicateIdHint, MessageType.Warning);
+                }
                 else
                 {
                     EditorGUILayout.Space(5);

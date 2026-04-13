@@ -1,7 +1,7 @@
 # Prefab Annotator
 
 [![Unity](https://img.shields.io/badge/Unity-2019.4%2B-blue)](https://unity.com/)
-[![Version](https://img.shields.io/badge/Version-1.0.3-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.0.4-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE.md)
 
 **[中文](README.md)**
@@ -91,7 +91,7 @@ Open `Packages/manifest.json` and add the following under `dependencies`:
 To specify a version, use a tag:
 
 ```json
-"com.firebox.prefab-annotator": "https://github.com/wuchunpeng777/prefab-annotator.git#v1.0.3"
+"com.firebox.prefab-annotator": "https://github.com/wuchunpeng777/prefab-annotator.git#v1.0.4"
 ```
 
 ### Method 3: Local Installation
