@@ -8,7 +8,7 @@
 
 A Unity editor extension that adds natural-language annotations to Prefab nodes and exports structured text with semantic descriptions, enabling AI to generate business-ready code.
 
-![Prefab Annotator Screenshot](CleanShot.png)
+![Prefab Annotator Screenshot](CleanShot_EN.png)
 
 ## Table of Contents
 
