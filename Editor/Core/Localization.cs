@@ -53,6 +53,11 @@ namespace PrefabAnnotator.Core
         public static string Inspector_ExportDescriptions => IsChinese ? "导出Prefab描述" : "Export Prefab Descriptions";
 
         /// <summary>
+        /// 导出当前节点描述按钮（选中子节点时）
+        /// </summary>
+        public static string Inspector_ExportNodeDescriptions => IsChinese ? "导出当前节点描述" : "Export Current Node Descriptions";
+
+        /// <summary>
         /// 展开所有注释节点按钮
         /// </summary>
         public static string Inspector_ExpandAnnotatedNodes => IsChinese ? "展开所有注释节点" : "Expand Annotated Nodes";

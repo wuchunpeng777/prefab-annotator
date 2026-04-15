@@ -232,6 +232,114 @@ namespace PrefabAnnotator.Export
         }
 
         /// <summary>
+        /// 导出从根节点到目标节点路径 + 目标节点完整子树的剪枝文本
+        /// 路径上的兄弟节点会被剪枝，仅保留通往目标节点的单一路径
+        /// </summary>
+        public static string ExportGameObjectWithPathToString(GameObject root, GameObject target)
+        {
+            if (root == null || target == null)
+            {
+                return null;
+            }
+
+            if (root == target)
+            {
+                return ExportGameObjectToString(root);
+            }
+
+            // 构建从 root 到 target 的路径
+            List<Transform> path = new List<Transform>();
+            Transform current = target.transform;
+            while (current != null)
+            {
+                path.Insert(0, current);
+                if (current == root.transform)
+                    break;
+                current = current.parent;
+            }
+
+            // 验证路径有效性（路径起点必须是 root）
+            if (path.Count < 2 || path[0] != root.transform)
+            {
+                return null;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+            string currentPrefabPath = prefabStage?.assetPath;
+
+            // 渲染路径上的每个中间节点（剪枝兄弟）
+            for (int pathIdx = 0; pathIdx < path.Count; pathIdx++)
+            {
+                GameObject node = path[pathIdx].gameObject;
+                bool isRoot = (pathIdx == 0);
+                bool isTarget = (pathIdx == path.Count - 1);
+
+                // 检查嵌套 Prefab
+                string nestedPrefabPath = null;
+                bool isNestedPrefabRoot = false;
+                if (!isRoot && PrefabUtility.IsAnyPrefabInstanceRoot(node))
+                {
+                    GameObject sourcePrefab = PrefabUtility.GetCorrespondingObjectFromOriginalSource(node);
+                    if (sourcePrefab != null)
+                    {
+                        nestedPrefabPath = AssetDatabase.GetAssetPath(sourcePrefab);
+                        if (!string.IsNullOrEmpty(nestedPrefabPath) && nestedPrefabPath != currentPrefabPath)
+                        {
+                            isNestedPrefabRoot = true;
+                        }
+                    }
+                }
+
+                string description = DescriptionFileManager.GetDescriptionWithNestedSupport(node);
+                string nodeInfo = BuildNodeInfo(node, description, isNestedPrefabRoot, nestedPrefabPath);
+
+                // 计算缩进前缀：路径中每层都是唯一子节点，所以用 "   " 缩进
+                string prefix = "";
+                for (int i = 0; i < pathIdx; i++)
+                {
+                    prefix += "   ";
+                }
+
+                if (isRoot)
+                {
+                    sb.AppendLine(nodeInfo);
+                }
+                else
+                {
+                    sb.AppendLine($"{prefix}└─ {nodeInfo}");
+                }
+
+                // 到达目标节点：输出其完整子树
+                if (isTarget)
+                {
+                    string childPrefix = prefix + "   ";
+                    List<Transform> validChildren = new List<Transform>();
+                    int childCount = node.transform.childCount;
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        Transform child = node.transform.GetChild(i);
+                        if (!DescriptionFileManager.IsIgnoredWithNestedSupport(child.gameObject))
+                        {
+                            validChildren.Add(child);
+                        }
+                    }
+
+                    for (int i = 0; i < validChildren.Count; i++)
+                    {
+                        Transform child = validChildren[i];
+                        bool isChildLast = (i == validChildren.Count - 1);
+                        string childPrefabPath = isNestedPrefabRoot ? nestedPrefabPath : currentPrefabPath;
+                        BuildTreeTextWithNestedSupportChild(child.gameObject, sb, childPrefix, isChildLast, childPrefabPath, currentPrefabPath, currentPrefabPath);
+                    }
+                }
+            }
+
+            string result = sb.ToString().TrimEnd();
+            return string.IsNullOrEmpty(result) ? null : result;
+        }
+
+        /// <summary>
         /// 递归构建树形文本（原始版本，保留兼容性）
         /// </summary>
         private static bool BuildTreeText(GameObject gameObject, StringBuilder sb, string prefix, bool isLast, bool isRoot,

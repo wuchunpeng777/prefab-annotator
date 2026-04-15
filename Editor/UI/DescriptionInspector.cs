@@ -79,8 +79,12 @@ namespace PrefabAnnotator.UI
 
             EditorGUILayout.Space(5);
 
-            // 导出按钮
-            if (GUILayout.Button(Localization.Inspector_ExportDescriptions, _buttonStyle))
+            // 导出按钮（根据选中节点动态切换文案）
+            bool isRootSelected = (_currentGameObject == null || _currentGameObject == prefabStage.prefabContentsRoot);
+            string exportLabel = isRootSelected
+                ? Localization.Inspector_ExportDescriptions
+                : Localization.Inspector_ExportNodeDescriptions;
+            if (GUILayout.Button(exportLabel, _buttonStyle))
             {
                 ExportCurrentPrefab();
             }
@@ -314,7 +318,16 @@ namespace PrefabAnnotator.UI
                 return;
             }
 
-            string result = DescriptionExporter.ExportGameObjectToString(root);
+            string result;
+            if (_currentGameObject == null || _currentGameObject == root)
+            {
+                result = DescriptionExporter.ExportGameObjectToString(root);
+            }
+            else
+            {
+                result = DescriptionExporter.ExportGameObjectWithPathToString(root, _currentGameObject);
+            }
+
             if (string.IsNullOrEmpty(result))
             {
                 EditorUtility.DisplayDialog(Localization.Export_DialogTitle, Localization.Export_CannotExportPrefab, Localization.Export_OK);
