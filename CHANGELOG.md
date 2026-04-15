@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-04-15
+
+### Added
+
+- 支持在 Project 视图中 Ctrl+D（Mac: Cmd+D）复制 Prefab 时自动复制对应的注释文件并应用给新的prefab
+
 ## [1.0.4] - 2026-04-13
 
 ### Fixed

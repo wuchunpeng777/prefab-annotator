@@ -1,6 +1,6 @@
 {
   "name": "com.firebox.prefab-annotator",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "displayName": "Prefab Annotator",
   "description": "A Unity Editor extension for adding descriptions/annotations to GameObjects in Prefabs.",
   "unity": "2019.4",
