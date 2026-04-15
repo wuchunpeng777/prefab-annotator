@@ -17,6 +17,8 @@ A Unity editor extension that adds natural-language annotations to Prefab nodes 
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Subtree Pruning Export](#subtree-pruning-export)
+  - [Copying Prefabs](#copying-prefabs)
 - [Advantages](#advantages)
 - [Data Storage](#data-storage)
 - [License](#license)
@@ -54,8 +56,10 @@ main (Canvas)
 
 - **Node Annotation** — Add business-meaning descriptions to any GameObject in Prefab editing mode
 - **One-Click Export** — Export a tree text with node names, component types, hierarchy, and annotations (copied to clipboard)
+- **Subtree Pruning Export** — When exporting with a child node selected, only the subtree of that node is exported, automatically pruning unrelated branches to significantly reduce token consumption — ideal for partial Prefab structure updates
 - **AI-Driven** — Hand the exported text to AI to generate business-ready code, no more boilerplate
 - **Nested Prefabs** — Annotation inheritance and overriding for nested Prefabs
+- **Prefab Copy Sync** — Automatically copies the annotation file when duplicating a Prefab, linking it to the new Prefab with no re-annotation needed
 - **Visual Indicators** — Annotation icons and hover tooltips in the Hierarchy window
 - **Node Ignoring** — Exclude nodes and their children from export
 
@@ -131,6 +135,29 @@ Check "Ignore this node and its children" to exclude it during export.
 2. Click "Export Prefab Description" in the Inspector — the tree text is copied to clipboard
 3. Hand the exported tree text to AI to generate business-ready code based on annotations
 
+#### Subtree Pruning Export
+
+When you only need to modify a specific area of a Prefab, select that child node and click export. The plugin automatically trims unrelated subtrees, keeping only the path from the root to the selected node along with its complete subtree. This is especially useful for large Prefabs — a complex UI with hundreds of nodes can be reduced to just the relevant dozen nodes for a partial update, significantly lowering token consumption for AI, saving cost while improving generation accuracy.
+
+For example, using the export example above, if you select only the `content` node for export, the result is:
+
+~~~
+main (Canvas)
+└─ content
+   └─ Scroll View (Image, ScrollRect)
+      ├─ Viewport (Image, Mask)
+      │  └─ Content
+      └─ Scrollbar Vertical (Image, Scrollbar)
+         └─ Sliding Area
+            └─ Handle (Image)
+~~~
+
+Sibling nodes (`background`, `title`, `btnClose`) are automatically pruned, drastically reducing token consumption.
+
+### Copying Prefabs
+
+When duplicating a Prefab in Unity, the plugin automatically detects the copy and duplicates the corresponding annotation file (`.desc.json`), linking it to the new Prefab's GUID. No manual action needed — the new Prefab instantly inherits all annotations from the original and can be further modified.
+
 ### Switch Tool Language
 
 Menu: `Tools > Prefab Annotator > Language > Chinese/English`
@@ -164,6 +191,23 @@ The screenshot approach means taking screenshots of the Hierarchy and sending th
 | **Communication Cost** | Designers / artists / developers need extra docs to explain UI purpose | Annotations live on the Prefab — what you see is what you get |
 | **Error Rate** | Wrong node paths, missing component types — only discovered at runtime | AI generates code from precise structure info; paths and types are inherently correct |
 | **Repetitive Work** | Similar UIs still require rewriting boilerplate from scratch | Describe the business intent; AI handles all the repetitive work |
+
+</details>
+
+<details>
+<summary><strong>Advantages in Programmer–VFX Artist Collaboration</strong></summary>
+<br>
+
+In game development, a typical workflow is: programmers build the UI Prefab and write logic code, then hand the Prefab to VFX artists to add particle effects, animations, and other visual polish. VFX artists may add, rearrange, or restructure nodes during this process. Prefab Annotator provides significant advantages in this collaborative model:
+
+| | Traditional Workflow | Prefab Annotator + AI |
+|---|---|---|
+| **VFX Artists Understanding Nodes** | VFX artists receive a Prefab and must repeatedly ask programmers about each node's purpose and constraints | Programmers annotate during development; VFX artists open the Prefab and instantly see the business meaning of every node — zero communication overhead |
+| **Syncing After VFX Changes** | After VFX artists add/modify node structures, programmers must manually diff to find changes and update code by hand | Export the new structure description to AI, which automatically identifies differences and updates the code |
+| **Efficiency of Partial Changes** | VFX artists only changed a subtree, but programmers still need to review the entire Prefab tree to avoid missing anything | Use subtree pruning export to extract only the changed region; AI pinpoints the exact modifications |
+| **Prefab Variants / Copies** | Duplicating a Prefab for a variant loses all annotations; programmers must re-annotate and rewrite code from scratch | Annotations are auto-inherited on copy; AI quickly generates variant code based on existing annotations |
+| **Cross-Team Knowledge Retention** | When programmers leave, the design intent and business logic behind Prefab nodes is lost, making maintenance difficult | Annotations persist in the project under version control; node meanings are never lost |
+| **Iteration Speed** | Every VFX adjustment triggers a slow cycle of "programmer understands changes → manually updates code → joint debugging" | Export the changed region → AI generates code; iteration cycles shrink from hours to minutes |
 
 </details>
 
