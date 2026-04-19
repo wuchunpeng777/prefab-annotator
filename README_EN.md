@@ -12,16 +12,27 @@ A Unity editor extension that adds natural-language annotations to Prefab nodes 
 
 ## Table of Contents
 
-- [Quick Start](#quick-start)
-- [Export Example](#export-example)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Subtree Pruning Export](#subtree-pruning-export)
-  - [Copying Prefabs](#copying-prefabs)
-- [Advantages](#advantages)
-- [Data Storage](#data-storage)
-- [License](#license)
+- [Prefab Annotator](#prefab-annotator)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Start](#quick-start)
+  - [Export Example](#export-example)
+  - [Features](#features)
+  - [Installation](#installation)
+    - [Method 1: Install via Git URL (Recommended)](#method-1-install-via-git-url-recommended)
+    - [Method 2: Add to manifest.json manually](#method-2-add-to-manifestjson-manually)
+    - [Method 3: Local Installation](#method-3-local-installation)
+    - [Requirements](#requirements)
+  - [Usage](#usage)
+    - [Enable / Disable](#enable--disable)
+    - [Add Description](#add-description)
+    - [Ignore Node](#ignore-node)
+    - [Export Structure](#export-structure)
+      - [Subtree Pruning Export](#subtree-pruning-export)
+    - [Copying Prefabs](#copying-prefabs)
+    - [Switch Tool Language](#switch-tool-language)
+  - [Advantages](#advantages)
+  - [Data Storage](#data-storage)
+  - [License](#license)
 
 ## Quick Start
 
@@ -208,6 +219,23 @@ In game development, a typical workflow is: programmers build the UI Prefab and 
 | **Prefab Variants / Copies** | Duplicating a Prefab for a variant loses all annotations; programmers must re-annotate and rewrite code from scratch | Annotations are auto-inherited on copy; AI quickly generates variant code based on existing annotations |
 | **Cross-Team Knowledge Retention** | When programmers leave, the design intent and business logic behind Prefab nodes is lost, making maintenance difficult | Annotations persist in the project under version control; node meanings are never lost |
 | **Iteration Speed** | Every VFX adjustment triggers a slow cycle of "programmer understands changes → manually updates code → joint debugging" | Export the changed region → AI generates code; iteration cycles shrink from hours to minutes |
+
+</details>
+
+<details>
+<summary><strong>Compared to Traditional UI Reskin Workflow</strong></summary>
+<br>
+
+For event versions, seasonal themes, or channel-specific variants, teams often need to reskin UI quickly while keeping existing interaction logic. In this high-frequency iteration workflow, Prefab Annotator provides clear advantages:
+
+| | Traditional Reskin Workflow | Prefab Annotator + AI |
+|---|---|---|
+| **Change Localization Cost** | Programmers manually diff old/new Prefabs and verify node changes one by one | Export from the changed subtree, prune unrelated branches automatically, and let AI focus on real changes |
+| **Code Sync Efficiency** | Node paths, component references, and visibility logic are updated by hand with repeated joint debugging | Export structure descriptions to AI for batch generation/updates of bindings and logic code |
+| **Annotation & Semantics Continuity** | Duplicated skin Prefabs usually lose context, making mis-edits more likely | Annotation files are auto-inherited when copying Prefabs, so business semantics are reused immediately |
+| **Cross-Role Collaboration Cost** | Programmers, UI artists, and VFX artists repeatedly clarify node purpose and change scope | Annotations live on nodes, making reskin intent visible and reducing communication overhead |
+| **Regression Risk** | Manual edits often miss paths or bind wrong components, with issues discovered at runtime | AI generates from structure + annotations, improving path/type consistency |
+| **Iteration Speed** | Every reskin repeats a slow "diff -> hand-code -> joint-debug" cycle | Export changed nodes and regenerate quickly; one logic sync cycle can finish in minutes |
 
 </details>
 
