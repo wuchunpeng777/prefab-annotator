@@ -19,9 +19,16 @@ namespace PrefabAnnotator.UI
     [InitializeOnLoad]
     public static class DescriptionInspector
     {
+        private const float MinTextAreaHeight = 60f;
+        private const float MaxTextAreaHeight = 600f;
+        private const float ResizeHandleHeight = 7f;
+        private const int ResizeControlHint = 0x50415248;
+        private const string TextAreaHeightPreferenceKeyPrefix = "PrefabAnnotator.DescriptionTextAreaHeight.";
+
         private static string _currentDescription = string.Empty;
         private static GameObject _currentGameObject;
         private static bool _isEditing = false;
+        private static float _textAreaHeight = MinTextAreaHeight;
         private static GUIStyle _textAreaStyle;
         private static GUIStyle _labelStyle;
         private static GUIStyle _boxStyle;
@@ -72,6 +79,7 @@ namespace PrefabAnnotator.UI
                 _currentGameObject = gameObject;
                 // 使用缓存的方法获取描述
                 DescriptionFileManager.TryGetDescriptionWithNestedSupport(gameObject, out _currentDescription);
+                _textAreaHeight = LoadTextAreaHeight(gameObject);
                 _isEditing = false;
             }
 
@@ -180,8 +188,8 @@ namespace PrefabAnnotator.UI
                     string newDescription = EditorGUILayout.TextArea(
                         _currentDescription, 
                         _textAreaStyle, 
-                        GUILayout.MinHeight(60),
-                        GUILayout.ExpandHeight(true)
+                        GUILayout.Height(_textAreaHeight),
+                        GUILayout.ExpandHeight(false)
                     );
 
                     if (EditorGUI.EndChangeCheck())
@@ -189,6 +197,8 @@ namespace PrefabAnnotator.UI
                         _currentDescription = newDescription;
                         _isEditing = true;
                     }
+
+                    DrawTextAreaResizeHandle(editor, gameObject);
 
                     // 如果正在编辑，显示保存按钮
                     if (_isEditing)
@@ -234,6 +244,104 @@ namespace PrefabAnnotator.UI
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.Space(5);
+        }
+
+        private static void DrawTextAreaResizeHandle(Editor editor, GameObject gameObject)
+        {
+            Rect handleRect = GUILayoutUtility.GetRect(
+                GUIContent.none,
+                GUIStyle.none,
+                GUILayout.Height(ResizeHandleHeight),
+                GUILayout.ExpandWidth(true)
+            );
+            int controlId = GUIUtility.GetControlID(ResizeControlHint, FocusType.Passive, handleRect);
+            Event currentEvent = Event.current;
+
+            EditorGUIUtility.AddCursorRect(handleRect, MouseCursor.ResizeVertical, controlId);
+
+            if (currentEvent.type == EventType.Repaint)
+            {
+                Color handleColor = EditorGUIUtility.isProSkin
+                    ? new Color(0.55f, 0.55f, 0.55f, 0.8f)
+                    : new Color(0.35f, 0.35f, 0.35f, 0.65f);
+                Rect lineRect = new Rect(handleRect.x + 12f, handleRect.center.y, handleRect.width - 24f, 1f);
+                EditorGUI.DrawRect(lineRect, handleColor);
+            }
+
+            switch (currentEvent.GetTypeForControl(controlId))
+            {
+                case EventType.MouseDown:
+                    if (currentEvent.button == 0 && handleRect.Contains(currentEvent.mousePosition))
+                    {
+                        GUIUtility.hotControl = controlId;
+                        currentEvent.Use();
+                    }
+                    break;
+
+                case EventType.MouseDrag:
+                    if (GUIUtility.hotControl == controlId)
+                    {
+                        _textAreaHeight = Mathf.Clamp(
+                            _textAreaHeight + currentEvent.delta.y,
+                            MinTextAreaHeight,
+                            MaxTextAreaHeight
+                        );
+                        GUI.changed = true;
+                        editor.Repaint();
+                        currentEvent.Use();
+                    }
+                    break;
+
+                case EventType.MouseUp:
+                    if (GUIUtility.hotControl == controlId)
+                    {
+                        GUIUtility.hotControl = 0;
+                        SaveTextAreaHeight(gameObject);
+                        currentEvent.Use();
+                    }
+                    break;
+            }
+        }
+
+        private static float LoadTextAreaHeight(GameObject gameObject)
+        {
+            string preferenceKey = GetTextAreaHeightPreferenceKey(gameObject);
+            if (string.IsNullOrEmpty(preferenceKey))
+            {
+                return MinTextAreaHeight;
+            }
+
+            return Mathf.Clamp(
+                EditorPrefs.GetFloat(preferenceKey, MinTextAreaHeight),
+                MinTextAreaHeight,
+                MaxTextAreaHeight
+            );
+        }
+
+        private static void SaveTextAreaHeight(GameObject gameObject)
+        {
+            string preferenceKey = GetTextAreaHeightPreferenceKey(gameObject);
+            if (string.IsNullOrEmpty(preferenceKey))
+            {
+                return;
+            }
+
+            if (Mathf.Approximately(_textAreaHeight, MinTextAreaHeight))
+            {
+                EditorPrefs.DeleteKey(preferenceKey);
+            }
+            else
+            {
+                EditorPrefs.SetFloat(preferenceKey, _textAreaHeight);
+            }
+        }
+
+        private static string GetTextAreaHeightPreferenceKey(GameObject gameObject)
+        {
+            string globalId = NodeIdentifier.GetGlobalId(gameObject);
+            return string.IsNullOrEmpty(globalId)
+                ? null
+                : TextAreaHeightPreferenceKeyPrefix + globalId;
         }
 
         private static void SaveDescription(GameObject gameObject)

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-07-20
+
+### Added
+
+- 支持拖动调整 Inspector 中描述文本输入框的高度
+- 每个 Prefab 节点独立保存输入框高度，并在切换节点或重启 Unity 后恢复
+
 ## [1.0.5] - 2026-04-15
 
 ### Added
